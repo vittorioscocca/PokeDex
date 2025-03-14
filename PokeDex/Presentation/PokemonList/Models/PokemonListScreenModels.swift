@@ -9,7 +9,7 @@ import Foundation
 
 // MARK: - Coordinator
 
-/// Enum che rappresenta le azioni specifiche per il coordinatore della schermata della lista dei Pokémon.
+/// Enum che rappresenta le azioni specifiche per il coordinator della schermata della lista dei Pokémon.
 ///
 /// Attualmente non sono definiti casi specifici, ma l'enum serve come placeholder per eventuali azioni future.
 enum PokemonListScreenCoordinatorAction { }

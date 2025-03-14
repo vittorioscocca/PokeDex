@@ -15,7 +15,7 @@ import os.log
 @main
 struct PokeDexApp: App {
     
-    /// Oggetto coordinatore responsabile della navigazione e della gestione delle view dell'app.
+    /// Oggetto coordinator responsabile della navigazione e della gestione delle view dell'app.
     ///
     /// Viene creato come `@StateObject` per assicurare che il suo ciclo di vita sia gestito da SwiftUI.
     @StateObject private var appCoordinator = AppCoordinator()
@@ -35,7 +35,7 @@ struct PokeDexApp: App {
     /// della view principale e la ricezione di notifiche di avviso di memoria.
     var body: some Scene {
         WindowGroup {
-            // Presenta la view principale ottenuta dal coordinatore.
+            // Presenta la view principale ottenuta dal coordinator.
             appCoordinator.toPresentable()
                 .onAppear {
                     // Log di debug quando la view principale appare.

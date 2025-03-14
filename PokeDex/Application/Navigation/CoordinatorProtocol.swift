@@ -7,26 +7,26 @@
 
 import SwiftUI
 
-/// Un protocollo che definisce un coordinatore per la gestione della navigazione e delle viste in un'app SwiftUI.
+/// Un protocollo che definisce un coordinator per la gestione della navigazione e delle viste in un'app SwiftUI.
 ///
-/// Il coordinatore è responsabile dell'avvio e dell'arresto dei processi di navigazione e fornisce
+/// Il coordinator è responsabile dell'avvio e dell'arresto dei processi di navigazione e fornisce
 /// una vista presentabile da integrare nella gerarchia delle viste. Il protocollo è marcato con
 /// `@MainActor` per garantire che tutte le operazioni vengano eseguite sul thread principale.
 @MainActor
 protocol CoordinatorProtocol: AnyObject {
-    /// Avvia il coordinatore.
+    /// Avvia il coordinator.
     ///
-    /// Questo metodo dovrebbe contenere la logica per inizializzare il coordinatore e impostare il flusso di navigazione.
+    /// Questo metodo dovrebbe contenere la logica per inizializzare il coordinator e impostare il flusso di navigazione.
     func start()
     
-    /// Arresta il coordinatore.
+    /// Arresta il coordinator.
     ///
-    /// Questo metodo dovrebbe contenere la logica per interrompere il coordinatore e liberare eventuali risorse.
+    /// Questo metodo dovrebbe contenere la logica per interrompere il coordinator e liberare eventuali risorse.
     func stop()
     
-    /// Restituisce una vista presentabile associata al coordinatore.
+    /// Restituisce una vista presentabile associata al coordinator.
     ///
-    /// Utilizzato per integrare il coordinatore nella gerarchia delle viste come una `AnyView`.
+    /// Utilizzato per integrare il coordinator nella gerarchia delle viste come una `AnyView`.
     ///
     /// - Returns: Una `AnyView` che rappresenta la vista presentabile.
     func toPresentable() -> AnyView
@@ -35,14 +35,14 @@ protocol CoordinatorProtocol: AnyObject {
 /// Estensione di `CoordinatorProtocol` che fornisce implementazioni di default per i metodi del protocollo.
 ///
 /// Le implementazioni di default possono essere sovrascritte dalle classi che adottano il protocollo,
-/// offrendo così la flessibilità di personalizzare il comportamento del coordinatore.
+/// offrendo così la flessibilità di personalizzare il comportamento del coordinator.
 extension CoordinatorProtocol {
-    /// Implementazione di default per avviare il coordinatore.
+    /// Implementazione di default per avviare il coordinator.
     ///
     /// Di default, questo metodo non esegue alcuna operazione.
     func start() { }
     
-    /// Implementazione di default per arrestare il coordinatore.
+    /// Implementazione di default per arrestare il coordinator.
     ///
     /// Di default, questo metodo non esegue alcuna operazione.
     func stop() { }

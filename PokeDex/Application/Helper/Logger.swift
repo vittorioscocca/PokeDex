@@ -51,16 +51,12 @@ func formattedLogMessage(endpoint: String? = nil,
     let method = function
     // Ottiene l'identificatore del processo.
     let pid = ProcessInfo.processInfo.processIdentifier
-    // Campi fittizi per ulteriori informazioni nel log.
-    let ip = "N/A"
-    let correlationId = "N/A"
-    let reqId = "N/A"
     
     // Se l'endpoint è fornito e non vuoto, lo include nel messaggio.
     if let endpoint = endpoint, !endpoint.isEmpty {
-        return "[\(isoTimestamp)]-[\(classInstance)]-[\(method)]-[\(endpoint)]-[\(pid)]-[\(ip)]-[\(correlationId)]-[\(reqId)]: \(message)"
+        return "[\(isoTimestamp)]-[\(classInstance)]-[\(method)]-[\(endpoint)]-[\(pid)]: \(message)"
     } else {
         // Altrimenti, restituisce il messaggio senza l'endpoint.
-        return "[\(isoTimestamp)]-[\(classInstance)]-[\(method)]-[\(pid)]-[\(ip)]-[\(correlationId)]-[\(reqId)]: \(message)"
+        return "[\(isoTimestamp)]-[\(classInstance)]-[\(method)]-[\(pid)]: \(message)"
     }
 }

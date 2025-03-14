@@ -17,12 +17,12 @@ import Combine
 @MainActor
 class AppCoordinator: CoordinatorProtocol, ObservableObject {
     
-    /// Il coordinatore che gestisce lo stack di navigazione dell'app.
+    /// Il coordinator che gestisce lo stack di navigazione dell'app.
     ///
     /// Viene utilizzato per impostare e gestire i vari moduli di navigazione, inclusa la schermata principale e le eventuali presentazioni di sheet o fullscreen cover.
     private let navigationStackCoordinator: NavigationStackCoordinator
     
-    /// Inizializza il coordinatore principale.
+    /// Inizializza il coordinator principale.
     ///
     /// All'istanziazione, viene creato un `NavigationStackCoordinator` e viene avviato il processo di navigazione chiamando il metodo `start()`.
     init() {
@@ -30,16 +30,16 @@ class AppCoordinator: CoordinatorProtocol, ObservableObject {
         start()
     }
     
-    /// Avvia il coordinatore principale configurando la schermata iniziale dell'app.
+    /// Avvia il coordinator principale configurando la schermata iniziale dell'app.
     ///
-    /// In questo caso, viene creato un coordinatore per la schermata della lista dei Pokémon (`PokemonListScreenCoordinator`)
-    /// e viene impostato come coordinatore radice dello stack di navigazione. Questo metodo definisce il flusso iniziale dell'app.
+    /// In questo caso, viene creato un coordinator per la schermata della lista dei Pokémon (`PokemonListScreenCoordinator`)
+    /// e viene impostato come coordinator radice dello stack di navigazione. Questo metodo definisce il flusso iniziale dell'app.
     func start() {
         let pokemonListCoordinator = PokemonListScreenCoordinator(navigationStackCoordinator: self.navigationStackCoordinator)
         self.navigationStackCoordinator.setRootCoordinator(pokemonListCoordinator)
     }
     
-    /// Restituisce una vista presentabile che incapsula l'intera gerarchia di navigazione gestita dal coordinatore.
+    /// Restituisce una vista presentabile che incapsula l'intera gerarchia di navigazione gestita dal coordinator.
     ///
     /// Questo metodo permette di integrare la navigazione nella gerarchia delle view SwiftUI, fornendo un `AnyView`
     /// ottenuto dal `NavigationStackCoordinator`.

@@ -9,7 +9,7 @@ import Combine
 import SwiftUI
 import os.log
 
-/// Coordinatore per la schermata della lista dei Pokémon.
+/// coordinator per la schermata della lista dei Pokémon.
 ///
 /// Il `PokemonListScreenCoordinator` implementa il protocollo `CoordinatorProtocol` e gestisce:
 /// - La sottoscrizione alle azioni provenienti dal ViewModel della schermata dei Pokémon.
@@ -20,13 +20,13 @@ class PokemonListScreenCoordinator: CoordinatorProtocol {
     
     // MARK: - Proprietà Private
     
-    /// Coordinatore dello stack di navigazione utilizzato per presentare le schermate.
+    /// coordinator dello stack di navigazione utilizzato per presentare le schermate.
     private let navigationStackCoordinator: NavigationStackCoordinator
     
-    /// Soggetto Combine per trasmettere azioni specifiche del coordinatore.
+    /// Soggetto Combine per trasmettere azioni specifiche del coordinator.
     private let actionsSubject: PassthroughSubject<PokemonListScreenCoordinatorAction, Never> = .init()
     
-    /// Publisher che espone le azioni del coordinatore in modalità read-only.
+    /// Publisher che espone le azioni del coordinator in modalità read-only.
     var actions: AnyPublisher<PokemonListScreenCoordinatorAction, Never> {
         self.actionsSubject.eraseToAnyPublisher()
     }
@@ -39,9 +39,9 @@ class PokemonListScreenCoordinator: CoordinatorProtocol {
     
     // MARK: - Inizializzazione
     
-    /// Inizializza il coordinatore della schermata della lista dei Pokémon.
+    /// Inizializza il coordinator della schermata della lista dei Pokémon.
     ///
-    /// - Parameter navigationStackCoordinator: Il coordinatore dello stack di navigazione utilizzato per presentare le schermate.
+    /// - Parameter navigationStackCoordinator: Il coordinator dello stack di navigazione utilizzato per presentare le schermate.
     ///
     /// L'inizializzatore crea un'istanza del ViewModel per la lista dei Pokémon e registra un log di debug.
     init(navigationStackCoordinator: NavigationStackCoordinator) {
@@ -52,7 +52,7 @@ class PokemonListScreenCoordinator: CoordinatorProtocol {
     
     // MARK: - Metodi del CoordinatorProtocol
     
-    /// Avvia il coordinatore della schermata della lista dei Pokémon.
+    /// Avvia il coordinator della schermata della lista dei Pokémon.
     ///
     /// Il metodo sottoscrive il publisher delle azioni del ViewModel e gestisce l'azione di navigazione
     /// verso la schermata dei dettagli quando viene ricevuta l'azione `.didShowPokemonDetails`.
@@ -68,9 +68,9 @@ class PokemonListScreenCoordinator: CoordinatorProtocol {
         }.store(in: &self.cancellables)
     }
     
-    /// Ferma il coordinatore.
+    /// Ferma il coordinator.
     ///
-    /// In questo esempio, il metodo si limita a registrare un log di debug per indicare l'arresto del coordinatore.
+    /// In questo esempio, il metodo si limita a registrare un log di debug per indicare l'arresto del coordinator.
     func stop() {
         os_log("%{PUBLIC}@", log: OSLog.appLogger, type: .debug, formattedLogMessage(message: "PokemonListScreenCoordinator stopped"))
     }
@@ -92,7 +92,7 @@ class PokemonListScreenCoordinator: CoordinatorProtocol {
     ///
     /// - Parameter pokemon: L'oggetto `PokemonListItem` del Pokémon selezionato.
     ///
-    /// Il metodo crea un nuovo coordinatore per la schermata dei dettagli del Pokémon e lo aggiunge allo stack di navigazione
+    /// Il metodo crea un nuovo coordinator per la schermata dei dettagli del Pokémon e lo aggiunge allo stack di navigazione
     /// tramite il `NavigationStackCoordinator`.
     func showPokemonDetails(pokemon: PokemonListItem) {
         os_log("%{PUBLIC}@", log: OSLog.appLogger, type: .debug, formattedLogMessage(message: "Navigating to PokemonDetailsScreen for \(pokemon.name)"))

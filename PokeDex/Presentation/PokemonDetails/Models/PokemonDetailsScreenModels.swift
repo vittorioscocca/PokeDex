@@ -9,10 +9,10 @@ import Foundation
 
 // MARK: - Azioni per il Coordinator della schermata dei dettagli del Pokémon
 
-/// Enum che rappresenta le azioni specifiche per il coordinatore della schermata dei dettagli del Pokémon.
+/// Enum che rappresenta le azioni specifiche per il coordinator della schermata dei dettagli del Pokémon.
 ///
 /// Attualmente non sono definiti casi specifici, ma l'enum funge da placeholder per eventuali azioni future
-/// che il coordinatore potrebbe gestire.
+/// che il coordinator potrebbe gestire.
 enum PokemonDetailsScreenCoordinatorAction { }
 
 // MARK: - Azioni per il ViewModel della schermata dei dettagli del Pokémon
