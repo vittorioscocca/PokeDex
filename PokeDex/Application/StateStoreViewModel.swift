@@ -8,73 +8,102 @@
 import Combine
 import Foundation
 
-/// A common ViewModel implementation for handling of `State` and `ViewAction`s
+/// Implementazione comune di un ViewModel per la gestione dello `State` e delle `ViewAction`.
 ///
-/// Generic type State is constrained to the BindableState protocol in that it may contain (but doesn't have to)
-/// a specific portion of state that can be safely bound to.
-/// If we decide to add more features to our state management (like doing state processing off the main thread)
-/// we can do it in this centralised place.
+/// Il tipo generico `State` è vincolato al protocollo `BindableState`, in modo tale da poter
+/// eventualmente contenere una porzione di stato che può essere in modo sicuro legato alle view tramite binding bidirezionale.
+/// Questo ViewModel centralizza la logica di gestione dello stato, offrendo la possibilità di aggiungere in futuro ulteriori funzionalità
+/// (come il processamento dello stato fuori dal main thread) senza dover modificare l'intera architettura.
 @MainActor
 class StateStoreViewModel<State: BindableState, ViewAction> {
-    /// For storing subscription references.
+    
+    // MARK: - Proprietà di Base
+    
+    /// Insieme per conservare le referenze alle sottoscrizioni di Combine.
     ///
-    /// Left as public for `ViewModel` implementations convenience.
+    /// Questa proprietà viene lasciata pubblica per facilitare l'implementazione nelle sottoclassi del ViewModel.
     var cancellables = Set<AnyCancellable>()
     
-    /// Constrained interface for passing to Views.
+    /// Interfaccia ristretta che viene passata alle view per interagire con il ViewModel.
+    ///
+    /// La classe `Context` fornisce:
+    /// - La possibilità di leggere e osservare lo stato della view.
+    /// - La possibilità di inviare eventi (ViewAction) al ViewModel.
+    /// - Un binding sicuro per porzioni specifiche dello stato.
     var context: Context
     
+    /// Stato corrente del ViewModel.
+    ///
+    /// La proprietà `state` incapsula lo stato della view e permette di accedervi in modo leggibile e modificabile.
     var state: State {
         get { self.context.viewState }
         set { self.context.viewState = newValue }
     }
     
+    // MARK: - Inizializzazione
+    
+    /// Inizializza il ViewModel con lo stato iniziale.
+    ///
+    /// - Parameter initialViewState: Lo stato iniziale da assegnare alla view.
     init(initialViewState: State) {
         self.context = Context(initialViewState: initialViewState)
         self.context.viewModel = self
     }
     
-    /// Override to handles incoming `ViewAction`s from the `ViewModel`.
-    /// - Parameter viewAction: The `ViewAction` to be processed in `ViewModel` implementation.
+    // MARK: - Gestione delle Azioni della View
+    
+    /// Elabora le `ViewAction` inviate dalla view.
+    ///
+    /// Il metodo va sovrascritto dalle sottoclassi per gestire in modo specifico le azioni inviate dalla view.
+    ///
+    /// - Parameter viewAction: L'azione della view da processare.
     func process(viewAction: ViewAction) {
-        // Default implementation, -no-op
+        // Implementazione di default: non fa nulla (no-op).
     }
     
     // MARK: - Context
     
-    /// A constrained and concise interface for interacting with the ViewModel.
+    /// Un'interfaccia ristretta e concisa per interagire con il ViewModel.
     ///
-    /// This class is closely bound to`StateStoreViewModel`. It provides the exact interface the view should need to interact
-    /// ViewModel (as modelled on our previous template architecture with the addition of two-way binding):
-    /// - The ability read/observe view state
-    /// - The ability to send view events
-    /// - The ability to bind state to a specific portion of the view state safely.
-    /// This class was brought about a little bit by necessity. The most idiomatic way of interacting with SwiftUI is via `@Published`
-    /// properties which which are property wrappers and therefore can't be defined within protocols.
-    /// A similar approach is taken in libraries like [CombineFeedback](https://github.com/sergdort/CombineFeedback).
-    /// It provides a nice layer of consistency and also safety. As we are not passing the `ViewModel` to the view directly, shortcuts/hacks
-    /// can't be made into the `ViewModel`.
+    /// La classe `Context` è fortemente legata a `StateStoreViewModel` e fornisce l'interfaccia esatta
+    /// che la view necessita per interagire con il ViewModel. Questa interfaccia include:
+    /// - La possibilità di leggere/osservare lo stato della view tramite una proprietà `@Published`.
+    /// - La possibilità di inviare eventi alla view.
+    /// - La possibilità di legare (bind) in maniera sicura porzioni specifiche dello stato.
+    ///
+    /// Questo design evita l'uso diretto di property wrapper (come `@Published`) nelle interfacce dei protocolli,
+    /// fornendo un livello di astrazione che migliora la consistenza e la sicurezza nell'interazione tra view e ViewModel.
     @dynamicMemberLookup
     @MainActor
     final class Context: ObservableObject {
+        
+        /// Riferimento debole al ViewModel proprietario, per evitare cicli di retain.
         fileprivate weak var viewModel: StateStoreViewModel?
         
-        /// Get-able/Observable `Published` property for the `ViewState`
+        /// Proprietà osservabile che contiene lo stato della view.
+        ///
+        /// La proprietà è di sola lettura per le view, mentre il ViewModel può modificarla internamente.
         @Published fileprivate(set) var viewState: State
         
-        
-        /// Set-able/Bindable access to the bindable state.
+        /// Sottoscrizione dinamica per accedere in maniera bindabile a porzioni specifiche dello stato.
+        ///
+        /// Utilizzando il key path, è possibile leggere o aggiornare direttamente una porzione del `BindStateType`
+        /// definito in `BindableState`.
         subscript<T>(dynamicMember keyPath: WritableKeyPath<State.BindStateType, T>) -> T {
             get { self.viewState.bindings[keyPath: keyPath] }
             set { self.viewState.bindings[keyPath: keyPath] = newValue }
         }
         
-        /// Send a `ViewAction` to the `ViewModel` for processing.
-        /// - Parameter viewAction: The `ViewAction` to send to the `ViewModel`.
+        /// Invia una `ViewAction` al ViewModel per il relativo processamento.
+        ///
+        /// - Parameter viewAction: L'azione della view da inviare al ViewModel.
         func send(viewAction: ViewAction) {
             viewModel?.process(viewAction: viewAction)
         }
         
+        /// Inizializza il contesto con lo stato iniziale.
+        ///
+        /// - Parameter initialViewState: Lo stato iniziale da assegnare a `viewState`.
         fileprivate init(initialViewState: State) {
             self.viewState = initialViewState
         }

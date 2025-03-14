@@ -6,12 +6,29 @@
 //
 
 
-import Combine
 import SwiftUI
+import Combine
 
-/// Class responsible for displaying a normal "NavigationController" style hierarchy
+/// Coordinator che gestisce una gerarchia di navigazione in stile "NavigationController".
+///
+/// La classe `NavigationStackCoordinator` è responsabile di:
+/// - Gestire il coordinator radice e il suo aggiornamento (con log e teardown).
+/// - Gestire la presentazione di moduli in sheet e fullscreen cover.
+/// - Mantenere uno stack di moduli per la navigazione e gestire le operazioni di push e pop.
+/// - Fornire una vista presentabile ( tramite il metodo `toPresentable()`) che incapsula l'intera gerarchia di navigazione.
+///
+/// La classe è conforme ai protocolli:
+/// - `ObservableObject`: per poter essere osservata dalle view SwiftUI.
+/// - `CoordinatorProtocol`: per esporre metodi di start/stop e una vista presentabile.
+/// - `CustomStringConvertible`: per fornire una descrizione testuale utile al debugging.
+@MainActor
 class NavigationStackCoordinator: ObservableObject, CoordinatorProtocol, CustomStringConvertible {
     
+    // MARK: - Proprietà di Navigazione
+    
+    /// Modulo radice della navigazione.
+    ///
+    /// Quando viene aggiornato, esegue il teardown del modulo precedente (se esistente) e avvia il nuovo coordinator.
     @Published var rootModule: NavigationModule? {
         didSet {
             if let oldValue {
@@ -26,11 +43,14 @@ class NavigationStackCoordinator: ObservableObject, CoordinatorProtocol, CustomS
         }
     }
     
-    // The stack's current root coordinator
+    /// Il coordinator associato al modulo radice.
     var rootCoordinator: (any CoordinatorProtocol)? {
         self.rootModule?.coordinator
     }
     
+    /// Modulo per la presentazione di uno sheet.
+    ///
+    /// Quando viene aggiornato, esegue il teardown del modulo precedente e avvia il nuovo coordinator.
     @Published var sheetModule: NavigationModule? {
         didSet {
             if let oldValue {
@@ -45,14 +65,17 @@ class NavigationStackCoordinator: ObservableObject, CoordinatorProtocol, CustomS
         }
     }
     
+    /// Set dei detents per la presentazione dello sheet.
     var presentationDetents: Set<PresentationDetent> = []
     
-    // The currently presented sheet coordinator
-    // Sheets will be presented through the NavigationSplitCoordinator if provided
+    /// Il coordinator associato al modulo sheet corrente.
     var sheetCoordinator: (any CoordinatorProtocol)? {
-        return self.sheetModule?.coordinator
+        self.sheetModule?.coordinator
     }
     
+    /// Modulo per la presentazione a schermo intero (fullscreen cover).
+    ///
+    /// Quando viene aggiornato, esegue il teardown del modulo precedente e avvia il nuovo coordinator.
     @Published var fullScreenCoverModule: NavigationModule? {
         didSet {
             if let oldValue {
@@ -67,11 +90,14 @@ class NavigationStackCoordinator: ObservableObject, CoordinatorProtocol, CustomS
         }
     }
     
-    // The currently presented fullscreen cover coordinator
+    /// Il coordinator associato al modulo di fullscreen cover corrente.
     var fullScreenCoverCoordinator: (any CoordinatorProtocol)? {
-        return self.fullScreenCoverModule?.coordinator
+        self.fullScreenCoverModule?.coordinator
     }
     
+    /// Stack dei moduli della navigazione.
+    ///
+    /// I cambiamenti in questo array vengono monitorati per gestire operazioni di push e pop con animazione.
     @Published var stackModules = [NavigationModule]() {
         didSet {
             let diffs = self.stackModules.difference(from: oldValue)
@@ -88,23 +114,30 @@ class NavigationStackCoordinator: ObservableObject, CoordinatorProtocol, CustomS
         }
     }
     
-    // The current navigation stack. Excludes the rootCoordinator
+    /// I coordinatori correnti presenti nello stack (escludendo il coordinator radice).
     var stackCoordinators: [any CoordinatorProtocol] {
         self.stackModules.compactMap(\.coordinator)
     }
     
-    /// If this NavigationStackCoordinator will be embedded into a NavigationSplitCoordinator pass it here
-    /// so that sheet presentations are done through it. Otherwise sheets will not be presented properly
-    /// and dismissed automatically in compact layouts
-    /// - Parameter navigationSplitCoordinator: The expected parent NavigationSplitCoordinator
-    init() {
-    }
+    // MARK: - Inizializzazione
     
-    /// Set the coordinator to be used on the stack's root
+    /// Inizializza un nuovo `NavigationStackCoordinator`.
+    ///
+    /// L'inizializzatore non richiede parametri in quanto le proprietà verranno impostate successivamente
+    /// attraverso i metodi di navigazione (setRootCoordinator, push, ecc.).
+    init() { }
+    
+    // MARK: - Metodi di Navigazione
+    
+    /// Imposta il coordinator radice per la navigazione.
+    ///
+    /// Questo metodo rimuove il coordinator corrente (se presente) e imposta il nuovo coordinator come radice.
+    /// Viene eseguito un popToRoot prima di impostare il nuovo coordinator per garantire che lo stack sia vuoto.
+    ///
     /// - Parameters:
-    ///   - coordinator: the root coordinator
-    ///   - animated: whether to animate the transition or not. Default is true
-    ///   - dismissalCallback: called when this root coordinator has removed/replaced
+    ///   - coordinator: Il coordinator da impostare come radice.
+    ///   - animated: Indica se animare la transizione (default: `true`).
+    ///   - dismissalCallback: Closure opzionale chiamata quando il coordinator radice viene rimosso o sostituito.
     func setRootCoordinator(_ coordinator: (any CoordinatorProtocol)?, animated: Bool = true, dismissalCallback: (() -> Void)? = nil) {
         guard let coordinator else {
             self.rootModule = nil
@@ -125,11 +158,12 @@ class NavigationStackCoordinator: ObservableObject, CoordinatorProtocol, CustomS
         }
     }
     
-    /// Pushes a new coordinator on the navigation stack
+    /// Aggiunge (push) un nuovo coordinator nello stack di navigazione.
+    ///
     /// - Parameters:
-    ///   - coordinator: the coordinator to be displayed
-    ///   - animated: whether to animate the transition or not. Default is true
-    ///   - dismissalCallback: called when the coordinator has been popped, programatically or otherwise
+    ///   - coordinator: Il coordinator da aggiungere.
+    ///   - animated: Indica se animare la transizione (default: `true`).
+    ///   - dismissalCallback: Closure opzionale chiamata quando il coordinator viene rimosso (pop), in modo programmato o meno.
     func push(_ coordinator: any CoordinatorProtocol, animated: Bool = true, dismissalCallback: (() -> Void)? = nil) {
         var transaction = Transaction()
         transaction.disablesAnimations = !animated
@@ -139,8 +173,9 @@ class NavigationStackCoordinator: ObservableObject, CoordinatorProtocol, CustomS
         }
     }
     
-    /// Pop all the coordinators from the stack, returning to the root coordinator
-    /// - Parameter animated: whether to animate the transition or not. Default is true
+    /// Rimuove tutti i coordinatori dallo stack, ritornando al coordinator radice.
+    ///
+    /// - Parameter animated: Indica se animare la transizione (default: `true`).
     func popToRoot(animated: Bool = true) {
         guard !stackModules.isEmpty else {
             return
@@ -154,8 +189,9 @@ class NavigationStackCoordinator: ObservableObject, CoordinatorProtocol, CustomS
         }
     }
     
-    /// Removes the last coordinator from the navigation stack
-    /// - Parameter animated: whether to animate the transition or not. Default is true
+    /// Rimuove l'ultimo coordinator aggiunto dallo stack.
+    ///
+    /// - Parameter animated: Indica se animare la transizione (default: `true`).
     func pop(animated: Bool = true) {
         var transaction = Transaction()
         transaction.disablesAnimations = !animated
@@ -165,13 +201,14 @@ class NavigationStackCoordinator: ObservableObject, CoordinatorProtocol, CustomS
         }
     }
     
-    /// Present a sheet on top of the stack. If this NavigationStackCoordinator is embedded within a NavigationSplitCoordinator
-    /// then the presentation will be proxied to the split
+    /// Imposta il coordinator per la presentazione in modalità sheet.
+    ///
+    /// Se il parametro `coordinator` è `nil`, rimuove il coordinator sheet attuale.
+    ///
     /// - Parameters:
-    ///   - coordinator: the coordinator to display
-    ///   - animated: whether to animate the transition or not. Default is true
-    
-    ///   - dismissalCallback: called when the sheet has been dismissed, programatically or otherwise
+    ///   - coordinator: Il coordinator da presentare come sheet.
+    ///   - animated: Indica se animare la transizione (default: `true`).
+    ///   - dismissalCallback: Closure opzionale chiamata quando lo sheet viene dismesso.
     func setSheetCoordinator(_ coordinator: (any CoordinatorProtocol)?, animated: Bool = true, dismissalCallback: (() -> Void)? = nil) {
         guard let coordinator else {
             self.sheetModule = nil
@@ -190,12 +227,14 @@ class NavigationStackCoordinator: ObservableObject, CoordinatorProtocol, CustomS
         }
     }
     
-    /// Present a fullscreen cover on top of the stack. If this NavigationStackCoordinator is embedded within a NavigationSplitCoordinator
-    /// then the presentation will be proxied to the split
+    /// Imposta il coordinator per la presentazione a schermo intero (fullscreen cover).
+    ///
+    /// Se il parametro `coordinator` è `nil`, rimuove il coordinator fullscreen cover attuale.
+    ///
     /// - Parameters:
-    ///   - coordinator: the coordinator to display
-    ///   - animated: whether to animate the transition or not. Default is true
-    ///   - dismissalCallback: called when the fullscreen cover has been dismissed, programatically or otherwise
+    ///   - coordinator: Il coordinator da presentare in fullscreen cover.
+    ///   - animated: Indica se animare la transizione (default: `true`).
+    ///   - dismissalCallback: Closure opzionale chiamata quando il fullscreen cover viene dismesso.
     func setFullScreenCoverCoordinator(_ coordinator: (any CoordinatorProtocol)?, animated: Bool = true, dismissalCallback: (() -> Void)? = nil) {
         guard let coordinator else {
             self.fullScreenCoverModule = nil
@@ -216,14 +255,21 @@ class NavigationStackCoordinator: ObservableObject, CoordinatorProtocol, CustomS
     
     // MARK: - CoordinatorProtocol
     
+    /// Restituisce una vista presentabile che incapsula l'intera gerarchia di navigazione.
+    ///
+    /// Utilizza una view dedicata che integra:
+    /// - Uno `NavigationStack` per la navigazione basata su stack.
+    /// - La presentazione di sheet e fullscreen cover, se configurati.
+    ///
+    /// - Returns: Una `AnyView` contenente la gerarchia di navigazione.
     func toPresentable() -> AnyView {
-        AnyView(NavigationStackCoordinatorView(navigationStackCoordinator: self)
-            .presentationDetents(presentationDetents))
+        AnyView(
+            NavigationStackCoordinatorView(navigationStackCoordinator: self)
+                .presentationDetents(presentationDetents)
+        )
     }
     
-    /// The NavigationStack has a tendency to hold on to path items for longer than needed. We work around that by manually nilling the coordinator
-    /// when a NavigationModule is dismissed. As the NavigationModule is just a wrapper multiple instances of it continuing living is of no consequence
-    /// https://stackoverflow.com/questions/73885353/found-a-strange-behaviour-of-state-when-combined-to-the-new-navigation-stack/
+    /// Ferma tutti i coordinatori gestiti dal modulo, interrompendo e rimuovendo il coordinator radice, sheet, fullscreen cover e tutti gli elementi dello stack.
     func stop() {
         self.rootModule?.tearDown()
         self.sheetModule?.tearDown()
@@ -236,6 +282,9 @@ class NavigationStackCoordinator: ObservableObject, CoordinatorProtocol, CustomS
     
     // MARK: - CustomStringConvertible
     
+    /// Restituisce una rappresentazione testuale del coordinator.
+    ///
+    /// Se esiste un coordinator radice, restituisce la sua descrizione; altrimenti indica che la gerarchia è vuota.
     var description: String {
         if let rootCoordinator = rootModule?.coordinator {
             return "NavigationStackCoordinator(\(rootCoordinator))"
@@ -244,8 +293,13 @@ class NavigationStackCoordinator: ObservableObject, CoordinatorProtocol, CustomS
         }
     }
     
-    // MARK: - Private
+    // MARK: - Funzioni Private
     
+    /// Registra le variazioni di presentazione di un modulo, come push o pop, per il debug.
+    ///
+    /// - Parameters:
+    ///   - change: Una stringa che descrive il cambiamento (ad es., "Set root", "Push", "Pop").
+    ///   - module: Il modulo che ha subito il cambiamento.
     private func logPresentationChange(_ change: String, _ module: NavigationModule) {
         if let coordinator = module.coordinator {
             print("\(self) \(change): \(coordinator)")
@@ -253,6 +307,13 @@ class NavigationStackCoordinator: ObservableObject, CoordinatorProtocol, CustomS
     }
 }
 
+// MARK: - View di Supporto per la Presentazione della Navigazione
+
+/// Una view privata che incapsula la presentazione della gerarchia di navigazione gestita da `NavigationStackCoordinator`.
+///
+/// La view utilizza:
+/// - Uno `NavigationStack` per visualizzare la vista del coordinator radice e per navigare attraverso lo stack.
+/// - Presentazioni di sheet e fullscreen cover, se configurate, basandosi sui binding associati ai moduli.
 private struct NavigationStackCoordinatorView: View {
     @ObservedObject var navigationStackCoordinator: NavigationStackCoordinator
     
