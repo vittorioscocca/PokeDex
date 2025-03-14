@@ -35,6 +35,7 @@ struct PokemonListScreen: View {
                 }
             }
             .listStyle(PlainListStyle())
+            .accessibilityIdentifier("pokemonList")
         }
         .alert(item: self.$context.alertInfo)
         .navigationBarTitle("Pokedex", displayMode: .large)

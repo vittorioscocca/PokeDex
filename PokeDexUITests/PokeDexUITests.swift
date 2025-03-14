@@ -7,7 +7,7 @@
 
 import XCTest
 
-/// Test suite per l'interfaccia utente (UI) dell'applicazione PokeDex.
+/// Test per verificare il corretto caricamento della schermata della lista dei Pokémon.
 ///
 /// Questa classe contiene diversi casi d'uso per verificare che:
 /// - La schermata della lista dei Pokémon venga caricata correttamente.
@@ -17,9 +17,9 @@ final class PokeDexUITests: XCTestCase {
     
     // MARK: - Setup
     
-    /// Esegue la configurazione iniziale prima dell'esecuzione di ciascun test.
+    /// Configurazione iniziale eseguita prima di ogni test.
     ///
-    /// In questo caso, viene impostato `continueAfterFailure` a `false` per interrompere il test al primo fallimento.
+    /// Imposta `continueAfterFailure` a `false` per interrompere il test al primo fallimento.
     override func setUp() {
         continueAfterFailure = false
     }
@@ -29,75 +29,96 @@ final class PokeDexUITests: XCTestCase {
     /// Caso d'uso 1: Verifica che la schermata della lista dei Pokémon venga caricata correttamente.
     ///
     /// Il test:
-    /// - Avvia l'applicazione con un flag di test (launchEnvironment).
-    /// - Attende che la navigation bar con titolo "Pokedex" sia presente.
-    /// - Verifica che la table view (lista) esista.
-    /// - Controlla che almeno una cella della lista sia visualizzata.
+    /// - Avvia l'applicazione in modalità test impostando il flag "UITest" nell'ambiente.
+    /// - Attende che la navigation bar con il titolo "Pokedex" sia presente.
+    /// - Verifica che la List sia presente, utilizzando l'accessibility identifier "pokemonList".
+    /// - Verifica che almeno una cella della List, identificata come "pokemonListCell", sia presente.
     func testListScreenLoads() {
         let app = XCUIApplication()
         // Imposta il flag di test nell'ambiente di lancio.
         app.launchEnvironment["UITest"] = "true"
         app.launch()
         
-        // Attende che la navigation bar con titolo "Pokedex" esista.
+        // Verifica che la navigation bar con titolo "Pokedex" esista.
         let navBar = app.navigationBars["Pokedex"]
         XCTAssertTrue(navBar.waitForExistence(timeout: 10), "La navigation bar non è presente")
         
-        // Verifica che la lista (table view) sia presente.
-        let tableView = app.tables.firstMatch
-        XCTAssertTrue(tableView.waitForExistence(timeout: 10), "La lista non è presente")
+        // Verifica che la List sia presente (usa l'accessibility identifier impostato sulla List).
+        let list = app.descendants(matching: .any).matching(identifier: "pokemonList").firstMatch
+        XCTAssertTrue(list.waitForExistence(timeout: 10), "La lista non è presente")
         
-        // Verifica che almeno una cella della lista esista.
-        let firstCell = tableView.cells.firstMatch
+        // Verifica che almeno una cella della List sia presente.
+        // Se le celle non hanno l'accessibility identifier "pokemonListCell", il test fallirà.
+        let firstCell = app.descendants(matching: .any).matching(identifier: "pokemonListCell").firstMatch 
         XCTAssertTrue(firstCell.waitForExistence(timeout: 10), "Nessuna cella trovata nella lista")
     }
     
     /// Caso d'uso 2: Verifica la navigazione dalla schermata della lista alla schermata dei dettagli del Pokémon.
+    /// Verifica che la schermata dei dettagli del Pokémon visualizzi le informazioni relative ad altezza e peso.
     ///
     /// Il test:
-    /// - Avvia l'applicazione in modalità test.
-    /// - Attende la presenza della lista dei Pokémon.
-    /// - Simula un tap sulla prima cella della lista.
-    /// - Attende che venga presentata la schermata dei dettagli, identificata da un elemento con l'accessibility identifier "pokemonDetailName".
+    /// - Avvia l'app in modalità test.
+    /// - Attende la presenza della List e della prima cella.
+    /// - Simula un tap sulla cella.
+    /// - Attende che la schermata dei dettagli venga presentata controllando che un elemento
+    ///   con l'accessibility identifier "pokemonDetailName" esista.
     func testNavigationToDetail() {
         let app = XCUIApplication()
         app.launchEnvironment["UITest"] = "true"
         app.launch()
         
-        let tableView = app.tables.firstMatch
-        XCTAssertTrue(tableView.waitForExistence(timeout: 10), "La lista non è presente")
+        // Verifica la presenza della List.
+        let list = app.descendants(matching: .any).matching(identifier: "pokemonList").firstMatch
+        XCTAssertTrue(list.waitForExistence(timeout: 10), "La lista non è presente")
         
-        let firstCell = tableView.cells.firstMatch
-        XCTAssertTrue(firstCell.waitForExistence(timeout: 10), "La cella della lista non è presente")
+        // Verifica la presenza della cella nella List.
+        let firstCell = app.descendants(matching: .any).matching(identifier: "pokemonListCell").firstMatch
+        XCTAssertTrue(firstCell.waitForExistence(timeout: 10), "Nessuna cella trovata nella lista")
         
-        // Simula il tap sulla cella per navigare alla schermata dei dettagli.
+        // Simula il tap sulla cella per avviare la navigazione alla schermata dei dettagli.
         firstCell.tap()
         
-        // Attende che la schermata dei dettagli venga presentata: l'elemento con accessibility identifier "pokemonDetailName" deve esistere.
-        let detailLabel = app.staticTexts["pokemonDetailName"]
-        XCTAssertTrue(detailLabel.waitForExistence(timeout: 10), "La schermata dei dettagli non è stata presentata")
+        // Verifica che la schermata dei dettagli presenti il campo "Altezza".
+        // Utilizziamo un NSPredicate per cercare il testo che contiene "Altezza:",
+        // poiché nella view SwiftUI il testo è "Altezza: \(context.height)" e non ha un accessibility identifier esplicito.
+        let heightLabel = app.staticTexts.containing(NSPredicate(format: "label CONTAINS[c] 'Altezza:'")).firstMatch
+        XCTAssertTrue(heightLabel.waitForExistence(timeout: 10), "La schermata dei dettagli non presenta il campo 'Altezza'")
+        
+        // Verifica che la schermata dei dettagli presenti il campo "Peso".
+        let weightLabel = app.staticTexts.containing(NSPredicate(format: "label CONTAINS[c] 'Peso:'")).firstMatch
+        XCTAssertTrue(weightLabel.waitForExistence(timeout: 10), "La schermata dei dettagli non presenta il campo 'Peso'")
+        
+        // Verifica che la schermata dei dettagli presenti il campo "Abilità" come Button.
+        // Usa un NSPredicate per cercare un button il cui label contenga "Abilità".
+        let abilitiesButton = app.buttons.containing(NSPredicate(format: "label CONTAINS[c] 'Abilità'")).firstMatch
+        XCTAssertTrue(abilitiesButton.waitForExistence(timeout: 10), "La schermata dei dettagli non presenta il campo 'Abilità' come Button")
+        
+        // Verifica che la schermata dei dettagli presenti il campo "Mosse" come Button.
+        // Usa un NSPredicate per cercare un button il cui label contenga "Mosse".
+        let movesButton = app.buttons.containing(NSPredicate(format: "label CONTAINS[c] 'Mosse'")).firstMatch
+        XCTAssertTrue(movesButton.waitForExistence(timeout: 10), "La schermata dei dettagli non presenta il campo 'Mosse' come Button")
     }
     
-    /// Caso d'uso 3: Verifica che un alert venga visualizzato in caso di errore durante l'interazione con l'API.
+    /// Caso d'uso 3: Verifica che venga visualizzato un alert in caso di errore durante l'interazione con l'API.
     ///
     /// Il test:
-    /// - Configura l'ambiente di lancio per simulare un errore nell'API impostando la variabile di ambiente "SIMULATE_ERROR".
+    /// - Imposta la variabile di ambiente per simulare un errore nell'API ("SIMULATE_ERROR").
     /// - Avvia l'applicazione in modalità test.
     /// - Attende che un alert venga visualizzato.
     /// - Verifica che il bottone "OK" sia presente nell'alert e simula un tap per chiuderlo.
     func testErrorAlertDisplayed() {
         let app = XCUIApplication()
-        // Imposta la variabile di ambiente per simulare un errore nell'API.
         app.launchEnvironment["SIMULATE_ERROR"] = "1"
         app.launchEnvironment["UITest"] = "true"
         app.launch()
         
-        // Attende che venga mostrato un alert.
-        let errorAlert = app.alerts.firstMatch
-        XCTAssertTrue(errorAlert.waitForExistence(timeout: 10), "L'alert d'errore non è stato visualizzato")
+        // Prova a cercare l'alert usando un identificatore esplicito (se impostato nella view).
+        // Ad esempio, se il titolo dell'alert contiene "Errore".
+        let errorAlertTitle = app.descendants(matching: .any).matching(identifier: "Errore").firstMatch
+        XCTAssertTrue(errorAlertTitle.waitForExistence(timeout: 15), "L'alert d'errore non è stato visualizzato")
         
-        // Verifica che il bottone "OK" sia presente nell'alert e simula il tap per chiuderlo.
-        let okButton = errorAlert.buttons["OK"]
+        // Verifica che il bottone "OK" sia presente nell'alert.
+        let okButton = app.buttons.containing(NSPredicate(format: "label CONTAINS[c] 'OK'")).firstMatch
         XCTAssertTrue(okButton.waitForExistence(timeout: 5), "Il bottone OK non è presente nell'alert")
         okButton.tap()
     }

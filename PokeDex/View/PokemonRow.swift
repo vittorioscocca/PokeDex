@@ -34,5 +34,6 @@ struct PokemonRowView: View {
         .onTapGesture {
             onTap()
         }
+        .accessibilityIdentifier("pokemonListCell")
     }
 }

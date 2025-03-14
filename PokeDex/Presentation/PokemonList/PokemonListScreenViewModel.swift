@@ -106,6 +106,12 @@ class PokemonListScreenViewModel: PokemonListScreenViewModelType,
     /// - Aggiorna il conteggio totale, il link alla pagina successiva e quella precedente.
     /// - In caso di errore, gestisce l'errore tramite `handleError(_:)`.
     private func fetchPokemonList(url: String? = nil) {
+        // Controlla se è stata impostata la variabile d'ambiente per simulare un errore
+        if ProcessInfo.processInfo.environment["SIMULATE_ERROR"] == "1" {
+            os_log("%{PUBLIC}@", log: OSLog.appLogger, type: .debug, formattedLogMessage(endpoint: url, message: "Simulating error due to environment variable"))
+            self.state.bindings.alertInfo = AlertInfo(id: .alert)
+            return
+        }
         Task {
             let endpoint = url ?? Endpoints.baseURL.absoluteString
             os_log("%{PUBLIC}@", log: OSLog.appLogger, type: .debug, formattedLogMessage(endpoint: endpoint, message: "Fetching pokemon list."))
