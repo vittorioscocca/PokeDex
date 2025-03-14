@@ -1,0 +1,10 @@
+
+# Xcode e Swift
+*.xcworkspace
+*.xcodeproj/project.xcworkspace/
+DerivedData/
+.idea/
+Pods/
+# File di sistema macOS
+.DS_Store
+
