@@ -5,9 +5,9 @@
 //  Created by vscocca on 13/03/25.
 //
 
-
 import SwiftUI
 import Combine
+import os.log
 
 /// Coordinator che gestisce una gerarchia di navigazione in stile "NavigationController".
 ///
@@ -285,12 +285,9 @@ class NavigationStackCoordinator: ObservableObject, CoordinatorProtocol, CustomS
     /// Restituisce una rappresentazione testuale del coordinator.
     ///
     /// Se esiste un coordinator radice, restituisce la sua descrizione; altrimenti indica che la gerarchia è vuota.
-    var description: String {
-        if let rootCoordinator = rootModule?.coordinator {
-            return "NavigationStackCoordinator(\(rootCoordinator))"
-        } else {
-            return "NavigationStackCoordinator(Empty)"
-        }
+    nonisolated var description: String {
+        // Se non è indispensabile accedere allo stato isolato, puoi restituire una stringa statica
+        "NavigationStackCoordinator(Dettagli non disponibili fuori dal main actor)"
     }
     
     // MARK: - Funzioni Private
@@ -301,9 +298,8 @@ class NavigationStackCoordinator: ObservableObject, CoordinatorProtocol, CustomS
     ///   - change: Una stringa che descrive il cambiamento (ad es., "Set root", "Push", "Pop").
     ///   - module: Il modulo che ha subito il cambiamento.
     private func logPresentationChange(_ change: String, _ module: NavigationModule) {
-        if let coordinator = module.coordinator {
-            print("\(self) \(change): \(coordinator)")
-        }
+        guard let coordinator = module.coordinator else { return }
+        os_log("%{PUBLIC}@: %{PUBLIC}@", log: OSLog.appLogger, type: .debug, String(describing: self), "\(change): \(coordinator)")
     }
 }
 

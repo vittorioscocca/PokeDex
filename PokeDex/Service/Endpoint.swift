@@ -125,14 +125,6 @@ public struct Endpoint<A> {
     }
 }
 
-extension Endpoint: CustomStringConvertible {
-    /// Una rappresentazione testuale dell'endpoint, utile per il debug.
-    public var description: String {
-        let bodyStr = request.httpBody.flatMap { String(data: $0, encoding: .utf8) } ?? ""
-        return "\(request.httpMethod ?? "GET") \(request.url?.absoluteString ?? "") \(bodyStr)"
-    }
-}
-
 // MARK: - Convenience per Endpoint JSON
 
 extension Endpoint where A: Decodable {

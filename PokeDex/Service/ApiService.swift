@@ -19,7 +19,7 @@ class APIService: ApiServiceProtocol {
     /// Il client HTTP per effettuare le richieste di rete.
     private let networkLoader: HTTPClientProtocol!
     
-    /// Insieme di abbonamenti Combine per conservare le sottoscrizioni e gestire la cancellazione.
+    /// Insieme di  Combine per conservare le sottoscrizioni e gestire la cancellazione.
     private var cancellables = Set<AnyCancellable>()
     
     /// Inizializza il servizio API.
@@ -47,8 +47,7 @@ class APIService: ApiServiceProtocol {
         let endpointString = requestURL.absoluteString
         os_log("%{PUBLIC}@", log: OSLog.appLogger, type: .debug, formattedLogMessage(endpoint: endpointString, message: "Starting fetchPokemonList"))
         
-        let endpoint = Endpoint<PokemonListResponse>(path: endpointString)
-        return self.networkLoader.sendRequest(for: endpoint, on: RunLoop.main)
+        return self.networkLoader.sendRequest(for: Endpoint<PokemonListResponse>(path: endpointString), on: RunLoop.main)
     }
     
     /// Recupera la lista dei Pokémon in modo asincrono utilizzando async/await.
@@ -64,8 +63,7 @@ class APIService: ApiServiceProtocol {
         } else {
             requestURL = Endpoints.baseURL
         }
-        let endpointString = requestURL.absoluteString
-        os_log("%{PUBLIC}@", log: OSLog.appLogger, type: .debug, formattedLogMessage(endpoint: endpointString, message: "Starting async fetchPokemonList"))
+        os_log("%{PUBLIC}@", log: OSLog.appLogger, type: .debug, formattedLogMessage(endpoint: requestURL.absoluteString, message: "Starting async fetchPokemonList"))
         
         return await withCheckedContinuation { continuation in
             self.fetchPokemonList(from: requestURL)
@@ -75,12 +73,12 @@ class APIService: ApiServiceProtocol {
                         // Non è necessario loggare qui, in quanto il risultato viene gestito in `receiveValue`.
                         break
                     case .failure(let error):
-                        let errorMsg = formattedLogMessage(endpoint: endpointString, message: "Async fetchPokemonList failed with error: \(error)")
+                        let errorMsg = formattedLogMessage(endpoint: requestURL.absoluteString, message: "Async fetchPokemonList failed with error: \(error)")
                         os_log("%{PUBLIC}@", log: OSLog.appLogger, type: .error, errorMsg)
                         continuation.resume(returning: .failure(error))
                     }
                 }, receiveValue: { response in
-                    let successMsg = formattedLogMessage(endpoint: endpointString, message: "Async fetchPokemonList succeeded")
+                    let successMsg = formattedLogMessage(endpoint: requestURL.absoluteString, message: "Async fetchPokemonList succeeded")
                     os_log("%{PUBLIC}@", log: OSLog.appLogger, type: .debug, successMsg)
                     continuation.resume(returning: .success(response))
                 })
@@ -103,8 +101,7 @@ class APIService: ApiServiceProtocol {
     /// - Parameter url: L'URL per i dettagli del Pokémon.
     /// - Returns: Un `Result` contenente una `PokemonDetailResponse` in caso di successo o un `APIError` in caso di errore.
     func fetchPokemonDetailAsync(from url: URL) async -> Result<PokemonDetailResponse, APIError> {
-        let endpointString = url.absoluteString
-        os_log("%{PUBLIC}@", log: OSLog.appLogger, type: .debug, formattedLogMessage(endpoint: endpointString, message: "Starting async fetchPokemonDetail"))
+        os_log("%{PUBLIC}@", log: OSLog.appLogger, type: .debug, formattedLogMessage(endpoint: url.absoluteString, message: "Starting async fetchPokemonDetail"))
         
         return await withCheckedContinuation { continuation in
             self.fetchPokemonDetail(from: url)
@@ -113,12 +110,12 @@ class APIService: ApiServiceProtocol {
                     case .finished:
                         break
                     case .failure(let error):
-                        let errorMsg = formattedLogMessage(endpoint: endpointString, message: "Async fetchPokemonDetail failed with error: \(error)")
+                        let errorMsg = formattedLogMessage(endpoint: url.absoluteString, message: "Async fetchPokemonDetail failed with error: \(error)")
                         os_log("%{PUBLIC}@", log: OSLog.appLogger, type: .error, errorMsg)
                         continuation.resume(returning: .failure(error))
                     }
                 }, receiveValue: { response in
-                    let successMsg = formattedLogMessage(endpoint: endpointString, message: "Async fetchPokemonDetail succeeded")
+                    let successMsg = formattedLogMessage(endpoint: url.absoluteString, message: "Async fetchPokemonDetail succeeded")
                     os_log("%{PUBLIC}@", log: OSLog.appLogger, type: .debug, successMsg)
                     continuation.resume(returning: .success(response))
                 })

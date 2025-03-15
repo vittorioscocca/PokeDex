@@ -45,13 +45,10 @@ enum Endpoints {
     
     /// Crea un endpoint per recuperare la lista dei Pokémon.
     ///
-    /// Questo metodo stampa l'URL finale (con il componente `/ditto`) per scopi di debug,
-    /// e restituisce un `Endpoint<PokemonListResponse>` configurato con l'URL di base.
+    /// Questo metodo, restituisce un `Endpoint<PokemonListResponse>` configurato con l'URL di base.
     ///
     /// - Returns: Un endpoint configurato per ottenere una `PokemonListResponse` dalla PokeAPI.
     static func pokemonListResponse() -> Endpoint<PokemonListResponse> {
-        let urlWithDitto = baseURL.appendingPathComponent(pokemonDitto)
-        print(urlWithDitto.absoluteString)
         return Endpoint(path: baseURL.absoluteString)
     }
     
