@@ -32,28 +32,4 @@ PokeDex è un'app iOS sviluppata con SwiftUI che utilizza l'API di PokeAPI per r
    ```sh
    open PokeDex.xcodeproj
    ```
-
-3. Esegui l'app su un simulatore o dispositivo reale.
-
-## 📡 API Reference
-L'app utilizza [PokeAPI](https://pokeapi.co/) per recuperare i dati sui Pokémon.
-
-## 📷 Screenshot
-_Aggiungi qui screenshot dell'app in funzione._
-
-## 🤝 Contribuire
-1. Fai un fork del repository.
-2. Crea un branch con la tua modifica:
-   ```sh
-   git checkout -b feature/nome-feature
-   ```
-3. Fai un commit della tua modifica:
-   ```sh
-   git commit -m "Aggiunto [descrizione]"
-   ```
-4. Fai push del branch e apri una Pull Request!
-
-## 📜 Licenza
-MIT License. Vedi `LICENSE` per maggiori dettagli.
-
 # PokeDex
