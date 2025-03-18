@@ -23,6 +23,9 @@ class PokemonListScreenCoordinator: CoordinatorProtocol {
     /// Coordinator dello stack di navigazione utilizzato per la gestione delle transizioni.
     private let navigationStackCoordinator: NavigationStackCoordinator
     
+    ///Api service utilizzato per il fetch della lista dei Pokemon
+    private let apiService: APIService
+    
     /// ViewModel per la schermata della lista dei Pokémon.
     private var viewModel: PokemonListScreenViewModel
     
@@ -34,9 +37,11 @@ class PokemonListScreenCoordinator: CoordinatorProtocol {
     /// Inizializza il coordinator per la schermata della lista dei Pokémon.
     ///
     /// - Parameter navigationStackCoordinator: Il coordinator dello stack di navigazione da utilizzare.
-    init(navigationStackCoordinator: NavigationStackCoordinator) {
+    init(navigationStackCoordinator: NavigationStackCoordinator,
+         apiService: APIService = APIService()) {
         self.navigationStackCoordinator = navigationStackCoordinator
-        self.viewModel = PokemonListScreenViewModel()
+        self.apiService = apiService
+        self.viewModel = PokemonListScreenViewModel(apiService: apiService)
         
         // Assegna il callback per mostrare i dettagli del Pokémon.
         // Quando il ViewModel invoca onShowPokemonDetails, viene chiamato il metodo showPokemonDetails del coordinator.

@@ -56,8 +56,7 @@ public class HTTPClient: HTTPClientProtocol {
     /// - Returns: Un publisher che emette il risultato decodificato di tipo `A` oppure un errore di tipo `APIError`.
     public func sendRequest<A, S: Scheduler>(for endpoint: Endpoint<A>, on scheduler: S) -> AnyPublisher<A, APIError> where A: Decodable {
         let urlStr = endpoint.request.url?.absoluteString ?? "unknown"
-        os_log("Sending request to %{PUBLIC}@", urlStr)
-        
+        os_log("%{PUBLIC}@", log: OSLog.appLogger, type: .debug, formattedLogMessage(endpoint: urlStr, message: "Sending request to"))
         return URLSession.shared.dataTaskPublisher(for: endpoint.request)
             .map { ($0.data, $0.response) }
             .mapError { $0 as Error }
@@ -65,15 +64,15 @@ public class HTTPClient: HTTPClientProtocol {
             .tryMap { data, response in
                 // Verifica che la response sia un HTTPURLResponse
                 guard let httpResponse = response as? HTTPURLResponse else {
-                    os_log("No HTTPURLResponse for %{PUBLIC}@", urlStr)
+                    os_log("%{PUBLIC}@", log: OSLog.appLogger, type: .debug, formattedLogMessage(endpoint: urlStr, message: "No HTTPURLResponse for"))
                     throw APIError.requestFailed
                 }
                 // Controlla il codice di stato della response
                 if !endpoint.expectedStatusCode(httpResponse.statusCode) {
                     if let errorMsg = try? JSONDecoder().decode(EmptyApiResponse.self, from: data).error {
-                        os_log("Unexpected status code %d: %@", httpResponse.statusCode, errorMsg)
+                        os_log("%{PUBLIC}@", log: OSLog.appLogger, type: .error, formattedLogMessage(message: "Unexpected status code \(httpResponse.statusCode): \(errorMsg)"))
                     } else {
-                        os_log("Unexpected status code %d with no error message", httpResponse.statusCode)
+                        os_log("%{PUBLIC}@", log: OSLog.appLogger, type: .error, formattedLogMessage(message: "Unexpected status code \(httpResponse.statusCode) with no error message"))
                     }
                     throw APIError.requestFailed
                 }
@@ -81,7 +80,7 @@ public class HTTPClient: HTTPClientProtocol {
                 return try endpoint.parse(data, response).get()
             }
             .mapError { err in
-                os_log("Mapping error: %{PUBLIC}@", "\(err)")
+                os_log("%{PUBLIC}@", log: OSLog.appLogger, type: .error, formattedLogMessage(message: "Mapping error: \(err)"))
                 return APIError.requestFailed
             }
             .eraseToAnyPublisher()

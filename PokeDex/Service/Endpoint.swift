@@ -100,7 +100,7 @@ public struct Endpoint<A> {
         if let cnt = contentType { req.setValue(cnt.rawValue, forHTTPHeaderField: "Content-Type") }
         headers.forEach { req.setValue($0.value, forHTTPHeaderField: $0.key) }
         
-        os_log("Endpoint URL: %{PUBLIC}@", finalURL.absoluteString)
+        os_log("%{PUBLIC}@", log: OSLog.appLogger, type: .debug, formattedLogMessage(message: "Endpoint URL: \(finalURL.absoluteString)"))
         
         self.request = req
         self.expectedStatusCode = expectedStatusCode
@@ -121,7 +121,7 @@ public struct Endpoint<A> {
         self.request = request
         self.expectedStatusCode = expectedStatusCode
         self.parse = parse
-        os_log("Initialized Endpoint from existing URLRequest")
+        os_log("%{PUBLIC}@", log: OSLog.appLogger, type: .debug, formattedLogMessage(message: "Initialized Endpoint from existing URLRequest"))
     }
 }
 
@@ -158,13 +158,15 @@ extension Endpoint where A: Decodable {
                   expectedStatusCode: expectedStatusCode,
                   timeOutInterval: timeOutInterval,
                   query: query) { data, _ in
-            os_log("Decoding JSON response for URL: %{PUBLIC}@", url.absoluteString)
+            os_log("%{PUBLIC}@", log: OSLog.appLogger, type: .debug, formattedLogMessage(message: "Decoding JSON response for URL: \(url.absoluteString)"))
+
             return Result {
                 guard let data = data else { throw NoDataError() }
                 return try decoder.decode(A.self, from: data)
             }
         }
-        os_log("Initialized JSON Endpoint for URL: %{PUBLIC}@", url.absoluteString)
+        os_log("%{PUBLIC}@", log: OSLog.appLogger, type: .debug, formattedLogMessage(message: "Initialized JSON Endpoint for URL: \(url.absoluteString)"))
+
     }
     
     /// Inizializzatore di convenienza per endpoint che decodificano una risposta JSON e inviano un corpo codificabile.
@@ -202,13 +204,15 @@ extension Endpoint where A: Decodable {
                   expectedStatusCode: expectedStatusCode,
                   timeOutInterval: timeOutInterval,
                   query: query) { data, _ in
-            os_log("Decoding JSON response for URL: %{PUBLIC}@", url.absoluteString)
+            os_log("%{PUBLIC}@", log: OSLog.appLogger, type: .debug, formattedLogMessage(message: "Decoding JSON response for URL: \(url.absoluteString)"))
+
             return Result {
                 guard let data = data else { throw NoDataError() }
                 return try decoder.decode(A.self, from: data)
             }
         }
-        os_log("Initialized JSON Endpoint (with body) for URL: %{PUBLIC}@", url.absoluteString)
+        os_log("%{PUBLIC}@", log: OSLog.appLogger, type: .debug, formattedLogMessage(message: "Initialized JSON Endpoint (with body) for URL: \(url.absoluteString)"))
+
     }
     
     /// Inizializzatore di convenienza che costruisce l'Endpoint a partire da una stringa di path.
@@ -229,7 +233,8 @@ extension Endpoint where A: Decodable {
                 timeOutInterval: TimeInterval = 60,
                 decoder: JSONDecoder = JSONDecoder()) {
         let url = URL(string: path)!
-        os_log("Initializing Endpoint from path: %{PUBLIC}@", url.absoluteString)
+        os_log("%{PUBLIC}@", log: OSLog.appLogger, type: .debug, formattedLogMessage(message: "Initializing Endpoint from path: \(url.absoluteString)"))
+
         self.init(method,
                   url: url,
                   accept: .json,
@@ -237,7 +242,7 @@ extension Endpoint where A: Decodable {
                   expectedStatusCode: expectedStatusCode,
                   timeOutInterval: timeOutInterval,
                   query: query) { data, _ in
-            os_log("Decoding JSON response from path initializer for URL: %{PUBLIC}@", url.absoluteString)
+            os_log("%{PUBLIC}@", log: OSLog.appLogger, type: .debug, formattedLogMessage(message: "Decoding JSON response from path initializer for URL: \(url.absoluteString)"))
             return Result {
                 guard let data = data else { throw NoDataError() }
                 return try decoder.decode(A.self, from: data)

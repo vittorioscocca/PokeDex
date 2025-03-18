@@ -21,6 +21,9 @@ class PokemonDetailsScreenCoordinator: CoordinatorProtocol {
     /// Coordinator dello stack di navigazione, utilizzato per gestire la navigazione tra le schermate.
     private let navigationStackCoordinator: NavigationStackCoordinator
     
+    ///Servizio API che serve ad effettuare il fetch dei dettagli dei Pokemon
+    private let apiService: APIService
+    
     /// ViewModel per la schermata dei dettagli, che fornisce i dati e le logiche per la view.
     private var viewModel: PokemonDetailsScreenViewModel
     
@@ -34,10 +37,13 @@ class PokemonDetailsScreenCoordinator: CoordinatorProtocol {
     /// - Parameters:
     ///   - navigationStackCoordinator: Il coordinator dello stack di navigazione a cui è associato.
     ///   - pokemon: Il Pokémon selezionato, usato per inizializzare il ViewModel.
-    init(navigationStackCoordinator: NavigationStackCoordinator, pokemon: PokemonListItem) {
+    init(navigationStackCoordinator: NavigationStackCoordinator,
+         apiService: APIService = APIService(),
+         pokemon: PokemonListItem) {
         self.navigationStackCoordinator = navigationStackCoordinator
+        self.apiService = apiService
         // Inizializza il ViewModel semplificato per la schermata dei dettagli, passando il Pokémon selezionato.
-        self.viewModel = PokemonDetailsScreenViewModel(pokemon: pokemon)
+        self.viewModel = PokemonDetailsScreenViewModel(pokemon: pokemon, apiService: apiService)
         os_log("%{PUBLIC}@", log: OSLog.appLogger, type: .debug,
                formattedLogMessage(message: "Initialized PokemonDetailsScreenCoordinator with pokemon: \(pokemon.name)"))
     }

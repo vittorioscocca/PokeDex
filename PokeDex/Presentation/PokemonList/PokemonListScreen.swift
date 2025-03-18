@@ -42,13 +42,13 @@ struct PokemonListScreen: View {
                 // Visualizza una riga della lista con il PokemonRowView.
                 // Quando la riga viene selezionata, viene invocato il callback per mostrare i dettagli.
                 PokemonRowView(pokemon: pokemon) {
-                    os_log("Navigating to details for pokemon: %{PUBLIC}@", log: OSLog.default, type: .debug, pokemon.name)
+                    os_log("%{PUBLIC}@", log: OSLog.appLogger, type: .debug, formattedLogMessage(message: "Navigating to details for pokemon: \(pokemon.name)"))
                     viewModel.showPokemonDetails(pokemon: pokemon)
                 }
                 .onAppear {
                     // Se l'ultima cella appare, carica la pagina successiva.
                     if pokemon.id == lastPokemon?.id {
-                        os_log("Last cell appeared, loading next page.", log: OSLog.default, type: .debug)
+                        os_log("%{PUBLIC}@", log: OSLog.appLogger, type: .debug, formattedLogMessage(message: "Last cell appeared, loading next page."))
                         viewModel.loadNextPage()
                     }
                 }

@@ -32,7 +32,8 @@ class NavigationModule: Identifiable, Hashable {
     init(_ coordinator: any CoordinatorProtocol, dismissalCallback: (() -> Void)? = nil) {
         self.coordinator = coordinator
         self.dismissalCallback = dismissalCallback
-        os_log("NavigationModule initialized with coordinator: %{PUBLIC}@", log: OSLog.default, type: .debug, "\(coordinator)")
+        os_log("%{PUBLIC}@", log: OSLog.appLogger, type: .debug, formattedLogMessage(message: "NavigationModule initialized with coordinator: \(coordinator)"))
+
     }
     
     /// Esegue il teardown del modulo:
@@ -40,14 +41,16 @@ class NavigationModule: Identifiable, Hashable {
     /// - Rimuove il riferimento al coordinator.
     /// - Esegue il callback di dismiss, se presente.
     func tearDown() {
-        os_log("Tearing down NavigationModule: %{PUBLIC}@", log: OSLog.default, type: .debug, "\(id)")
+        os_log("%{PUBLIC}@", log: OSLog.appLogger, type: .debug, formattedLogMessage(message: "Tearing down NavigationModule: \(id)"))
+
         coordinator?.stop()
         coordinator = nil
         
         let callback = dismissalCallback
         dismissalCallback = nil
         if let callback = callback {
-            os_log("Executing dismissal callback for NavigationModule: %{PUBLIC}@", log: OSLog.default, type: .debug, "\(id)")
+            os_log("%{PUBLIC}@", log: OSLog.appLogger, type: .debug, formattedLogMessage(message: "Executing dismissal callback for NavigationModule: \(id)"))
+
             callback()
         }
     }

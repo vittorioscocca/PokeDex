@@ -22,11 +22,14 @@ class AppCoordinator: CoordinatorProtocol, ObservableObject {
     /// Viene utilizzato per impostare e gestire i vari moduli di navigazione, inclusa la schermata principale e le eventuali presentazioni di sheet o fullscreen cover.
     private let navigationStackCoordinator: NavigationStackCoordinator
     
+    private let apiService: APIService
+    
     /// Inizializza il coordinator principale.
     ///
     /// All'istanziazione, viene creato un `NavigationStackCoordinator` e viene avviato il processo di navigazione chiamando il metodo `start()`.
     init() {
         self.navigationStackCoordinator = NavigationStackCoordinator()
+        self.apiService = APIService()
         start()
     }
     
@@ -35,7 +38,8 @@ class AppCoordinator: CoordinatorProtocol, ObservableObject {
     /// In questo caso, viene creato un coordinator per la schermata della lista dei Pokémon (`PokemonListScreenCoordinator`)
     /// e viene impostato come coordinator radice dello stack di navigazione. Questo metodo definisce il flusso iniziale dell'app.
     func start() {
-        let pokemonListCoordinator = PokemonListScreenCoordinator(navigationStackCoordinator: self.navigationStackCoordinator)
+        let pokemonListCoordinator = PokemonListScreenCoordinator(navigationStackCoordinator: self.navigationStackCoordinator,
+                                                                  apiService: self.apiService)
         self.navigationStackCoordinator.setRootCoordinator(pokemonListCoordinator)
     }
     

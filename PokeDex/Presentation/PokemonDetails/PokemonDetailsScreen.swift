@@ -43,7 +43,7 @@ struct PokemonDetailsScreen: View {
             
             // Pulsante per mostrare o nascondere le abilità.
             Button("Abilità") {
-                os_log("Pulsante Abilità premuto", log: OSLog.default, type: .debug)
+                os_log("%{PUBLIC}@", log: OSLog.appLogger, type: .debug, formattedLogMessage(message: "Pulsante Abilità premuto"))
                 viewModel.toggleAbilities()
             }
             // Se le abilità devono essere mostrate, visualizza una lista.
@@ -55,7 +55,7 @@ struct PokemonDetailsScreen: View {
             
             // Pulsante per mostrare o nascondere le mosse.
             Button("Mosse") {
-                os_log("Pulsante Mosse premuto", log: OSLog.default, type: .debug)
+                os_log("%{PUBLIC}@", log: OSLog.appLogger, type: .debug, formattedLogMessage(message: "Pulsante Mosse premuto"))
                 viewModel.toggleMoves()
             }
             // Se le mosse devono essere mostrate, visualizza una lista.
